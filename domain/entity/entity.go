@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"time"
 )
 
@@ -32,3 +33,17 @@ const (
 	General StackType = iota
 	Esperanto
 )
+
+func (st StackType) ProcessInput(input string) string {
+	switch st {
+	case Esperanto:
+		return normalizeXNotation(input)
+	default:
+		return input
+	}
+}
+
+func normalizeXNotation(input string) string {
+	r := strings.NewReplacer("cx", "ĉ", "jx", "ĵ", "ux", "ŭ", "gx", "ĝ", "sx", "ŝ")
+	return r.Replace(input)
+}

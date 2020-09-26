@@ -2,6 +2,7 @@ package data_sql
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -61,8 +62,23 @@ func (esql EngineSQL) touchFiles() error {
 				f.Close()
 			}
 		}
+		err := esql.touchCardStackFile(setDir)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func (esql EngineSQL) touchCardStackFile(dir string) error {
+	filePath := filepath.Join(dir, "card-stack.txt")
+	if sys.FileExists(filePath) {
+		return nil
+	}
+
+	text := "type = general\n"
+	err := ioutil.WriteFile(filePath, []byte(text), 0644)
+	return err
 }
 
 func (esql EngineSQL) initDB() error {
@@ -80,7 +96,7 @@ func (esql EngineSQL) initDB() error {
 
 		q := `
       CREATE TABLE IF NOT EXISTS cards
-        (id TEXT PRIMARY KEY,
+        (id BLOB PRIMARY KEY,
         value TEXT,
         description TEXT,
         bin INTEGER);
@@ -91,13 +107,15 @@ func (esql EngineSQL) initDB() error {
 
       CREATE TABLE IF NOT EXISTS stats
         (
-          id TEXT NOT NULL,
-          created_at TEXT NOT NULL,
+          id BLOB NOT NULL,
           success INTEGER NOT NULL,
-          PRIMARY KEY (id, created_at)
+          start_time INTEGER,
+          start_typing_time INTEGER,
+          end_typing_time INTEGER,
+          PRIMARY KEY (id, start_time)
         );
-      CREATE INDEX IF NOT EXISTS stats_created_at_idx
-        ON stats (created_at);`
+      CREATE INDEX IF NOT EXISTS stats_start_time_idx
+        ON stats (start_time);`
 		_, err = esql.DB.Exec(q)
 		if err != nil {
 			return err

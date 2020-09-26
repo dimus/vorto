@@ -49,8 +49,9 @@ DefaultSet: default
 WordsBatch: 25
 
 # Sets is a list of flash card sets created by the user
+# Supported types: "general", "esperanto"
 Sets:
-  - default
+- default
 `
 
 var (
@@ -139,7 +140,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Printf("Using config file: %s.", viper.ConfigFileUsed())
+		fmt.Printf("Using config file: %s.\n", viper.ConfigFileUsed())
 	}
 	getOpts()
 }
