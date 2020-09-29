@@ -10,17 +10,18 @@ type Loader interface {
 
 type Manager interface {
 	AutoSelect(cs *entity.CardStack, bin entity.BinType) []entity.Card
-	Analyse(card entity.Card)
-	Move(card entity.Card)
+	Analyse(card *entity.Card)
+	Move(card *entity.Card)
 }
 
 type Teacher interface {
 	Train(entity.BinType)
-	Ask(card entity.Card) int
+	Ask(card *entity.Card) int
 }
 
 type Scorer interface {
+	// Score compares an answer and the correct answer and calculates the score.
 	Score(value, answer string) int
-	// BadScore grades a score as very bad (-1), bad (0), good (1)
+	// BadScore grades a score as very bad (-1), bad (0), good (1).
 	BadScore(score int) int
 }

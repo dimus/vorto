@@ -116,7 +116,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.Flags().BoolP("vocabulary check", "v", false, "After learning words do vocabulary too")
 }
 
 // initConfig reads in config file and ENV variables if set.

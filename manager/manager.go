@@ -13,8 +13,8 @@ func (m Manager) AutoSelect(cs *entity.CardStack, bin entity.BinType) []entity.C
 	return res
 }
 
-func (m Manager) Analyse(card entity.Card) {
+func (m Manager) Analyse(card *entity.Card) {
 }
 
-func (m Manager) Move(card entity.Card) {
+func (m Manager) Move(card *entity.Card) {
 }

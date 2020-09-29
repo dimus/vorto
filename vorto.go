@@ -2,11 +2,12 @@ package vorto
 
 import (
 	"github.com/dimus/vorto/config"
-	"github.com/dimus/vorto/data/data_sql"
+	"github.com/dimus/vorto/data/data_json"
 	"github.com/dimus/vorto/domain/entity"
 	"github.com/dimus/vorto/domain/usecase"
 	"github.com/dimus/vorto/manager"
 	"github.com/dimus/vorto/teacher"
+	"github.com/fatih/color"
 )
 
 type Vorto struct {
@@ -19,7 +20,7 @@ type Vorto struct {
 func NewVorto(cfg config.Config) Vorto {
 	return Vorto{
 		Config:  cfg,
-		Loader:  data_sql.NewEngineSQL(cfg),
+		Loader:  data_json.NewEngineJSON(cfg),
 		Manager: manager.NewManager(),
 	}
 }
@@ -35,9 +36,15 @@ func (vrt Vorto) Load() (*entity.CardStack, error) {
 func (vrt Vorto) Run(cs *entity.CardStack) {
 	t := teacher.NewTeacher(cs)
 	vrt.Teacher = t
+	color.Yellow("Learning new terms...")
 	t.Train(entity.Learning)
+
+	if len(cs.Bins[entity.Learning]) >= 15 {
+		return
+	}
+
+	color.Green("\nChecking learned before words...\n")
 	t.Train(entity.Vocabulary)
-	vrt.Save(cs)
 }
 
 func (vrt Vorto) Save(cs *entity.CardStack) error {

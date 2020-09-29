@@ -2,30 +2,44 @@ package entity
 
 import (
 	"strings"
-	"time"
 )
 
 type CardStack struct {
-	StackType
-	Set string
-	Bins
+	StackType `json:"stackType"`
+	Set       string `json:"set"`
+	Bins      `json:"bins"`
 }
 
 type Card struct {
-	ID         string
-	Val        string
-	Def        string
-	Replies    []Reply
-	ReplyPause int
-	ReplySpeed int
+	ID      string `json:"id"`
+	Val     string `json:"value"`
+	Def     string `json:"defenition"`
+	Replies `json:"replies"`
 }
 
-type Reply struct {
-	Val bool
-	time.Time
+type Replies []bool
+
+func (rs Replies) Add(r bool) Replies {
+	var res Replies = []bool{r}
+	res = append(res, rs...)
+	if len(res) <= 5 {
+		return res
+	}
+	return res[0:5]
 }
 
-type Bins map[BinType][]Card
+func (rs Replies) LastGoodAnsw() int {
+	res := 0
+	for _, v := range rs {
+		if !v {
+			break
+		}
+		res++
+	}
+	return res
+}
+
+type Bins map[BinType][]*Card
 
 type StackType int
 

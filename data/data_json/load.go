@@ -1,8 +1,7 @@
-package data_sql
+package data_json
 
 import (
 	"bufio"
-	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,32 +13,37 @@ import (
 	"github.com/gnames/gnames/lib/gnuuid"
 )
 
-func (esql EngineSQL) Load(set string) (*entity.CardStack, error) {
-	res, err := esql.initCardStack(set)
+func (e EngineJSON) Load(set string) (*entity.CardStack, error) {
+	res, err := e.initCardStack(set)
 	if err != nil {
 		return &res, err
 	}
 
-	err = esql.populateCardStack(&res)
+	err = e.populateCardStack(&res)
 	if err != nil {
 		return &res, err
 	}
-
-	err = esql.populateDB(set, &res)
-	if err != nil {
-		return &res, err
-	}
-
 	return &res, nil
 }
 
-func (esql EngineSQL) populateCardStack(cs *entity.CardStack) error {
-	dir := esql.Config.DataDir
+func (e EngineJSON) initCardStack(set string) (entity.CardStack, error) {
+	res := entity.CardStack{
+		Bins: make(map[entity.BinType][]*entity.Card),
+	}
+	if _, ok := e.Sets[set]; !ok {
+		return res, fmt.Errorf("set '%s' is not in Sets", set)
+	}
+	res.Set = set
+	return res, nil
+}
+
+func (e EngineJSON) populateCardStack(cs *entity.CardStack) error {
+	dir := e.Config.DataDir
 	cardsDir := filepath.Join(dir, "flashcards")
 	setDir := filepath.Join(cardsDir, cs.Set)
 
 	for _, file := range cardBins {
-		err := esql.loadFile(setDir, file, cs)
+		err := e.loadFile(setDir, file, cs)
 		if err != nil {
 			return err
 		}
@@ -72,54 +76,18 @@ func stackType(dir string) entity.StackType {
 	return entity.General
 }
 
-func (esql EngineSQL) initCardStack(set string) (entity.CardStack, error) {
-	res := entity.CardStack{
-		Bins: make(map[entity.BinType][]entity.Card),
+func (e EngineJSON) savedCardMap(set string) (cardMap, error) {
+	var res cardMap = make(map[string]entity.Replies)
+	filePath := filepath.Join(e.DataDir, "flashcards", set, e.FileJSON)
+	text, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return res, err
 	}
-	if _, ok := esql.Sets[set]; !ok {
-		return res, fmt.Errorf("set '%s' is not in Sets", set)
-	}
-	res.Set = set
-	return res, nil
+	err = e.Encoder.Decode(text, &res)
+	return res, err
 }
 
-func (esql EngineSQL) populateDB(set string, cs *entity.CardStack) error {
-	var err error
-	dir := esql.Config.DataDir
-	cardsDir := filepath.Join(dir, "flashcards")
-	setDir := filepath.Join(cardsDir, set)
-	fileDBPath := filepath.Join(setDir, esql.FileDB)
-	esql.DB, err = sql.Open("sqlite3", fileDBPath)
-	if err != nil {
-		return err
-	}
-	tx, err := esql.DB.Begin()
-	if err != nil {
-		return err
-	}
-	count := 0
-	stmt, err := tx.Prepare(`
-	  INSERT OR IGNORE INTO cards (id, value, description, bin)
-	  VALUES (?, ?, ?, ?)`)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	for bin, cards := range cs.Bins {
-		for _, card := range cards {
-			count++
-			_, err = stmt.Exec(card.ID, card.Val, card.Def, int(bin))
-			if err != nil {
-				return err
-			}
-		}
-	}
-	tx.Commit()
-	if count == 0 {
-		fmt.Printf("TODO: Add instruction how to load names\n")
-	}
-	return nil
+func (e EngineJSON) prepareDataJSON() {
 }
 
 // parseLine takes a string and breaks it into two fields if it detects
@@ -140,7 +108,11 @@ func parseLine(line string) (string, string, bool) {
 	return field1, field2, true
 }
 
-func (esql EngineSQL) loadFile(dir string, bin entity.BinType, cs *entity.CardStack) error {
+func (e EngineJSON) loadFile(dir string, bin entity.BinType, cs *entity.CardStack) error {
+	oldCardMap, err := e.savedCardMap(cs.Set)
+	if err != nil {
+		return err
+	}
 	filePath := filepath.Join(dir, bin.String()+".txt")
 	f, err := os.OpenFile(filePath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
@@ -153,7 +125,12 @@ func (esql EngineSQL) loadFile(dir string, bin entity.BinType, cs *entity.CardSt
 		if !success {
 			continue
 		}
-		cs.Bins[bin] = append(cs.Bins[bin], entity.Card{ID: gnuuid.New(val).String(), Val: val, Def: def})
+
+		card := entity.Card{ID: gnuuid.New(val).String(), Val: val, Def: def}
+		if replies, ok := oldCardMap[card.Val]; ok {
+			card.Replies = replies
+		}
+		cs.Bins[bin] = append(cs.Bins[bin], &card)
 	}
 	return nil
 }

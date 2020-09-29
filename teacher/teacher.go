@@ -30,15 +30,24 @@ func NewTeacher(cs *entity.CardStack) Teacher {
 
 func (t Teacher) Train(bin entity.BinType) {
 	var ok bool
-	var cards []entity.Card
+	var cards []*entity.Card
 	if cards, ok = t.CardStack.Bins[bin]; ok && len(cards) > 0 {
+		cards = selectCards(cards)
 		t.processCards(cards)
 	} else {
 		log.Printf("There are no cards in a '%s' bin.", bin)
 	}
 }
 
-func (t Teacher) Ask(card entity.Card) int {
+func selectCards(cards []*entity.Card) []*entity.Card {
+	if len(cards) < 25 {
+		return cards
+	}
+	shuffleCards(cards)
+	return cards[0:25]
+}
+
+func (t Teacher) Ask(card *entity.Card) int {
 	scoreFinal := 0
 	fmt.Printf("What is: %s\n", card.Def)
 	for {
@@ -62,10 +71,12 @@ func (t Teacher) Ask(card entity.Card) int {
 			break
 		}
 	}
+	// If BadScore returns 1, the answer is correct.
+	card.Replies = card.Replies.Add(t.BadScore(scoreFinal) == 1)
 	return scoreFinal
 }
 
-func (t Teacher) processCards(cards []entity.Card) {
+func (t Teacher) processCards(cards []*entity.Card) {
 	total := 0
 	shuffleCards(cards)
 	for i, card := range cards {
@@ -73,10 +84,11 @@ func (t Teacher) processCards(cards []entity.Card) {
 		score := t.Ask(card)
 		total += score
 		fmt.Printf("Total so far: %d\n", total)
+		fmt.Printf("res: %+v\n", card.Replies)
 	}
 }
 
-func shuffleCards(cards []entity.Card) {
+func shuffleCards(cards []*entity.Card) {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(cards), func(i, j int) {
 		cards[i], cards[j] = cards[j], cards[i]
