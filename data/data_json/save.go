@@ -29,11 +29,7 @@ func (e EngineJSON) Save(cs *entity.CardStack) error {
 }
 
 func addNewWords(cs *entity.CardStack, num int) {
-<<<<<<< HEAD
 	if num <= 15 {
-=======
-	if num <= 20 {
->>>>>>> da7b8ca (Close #6 remember replies)
 		return
 	}
 
