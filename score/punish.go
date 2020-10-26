@@ -1,6 +1,6 @@
 package score
 
-import "github.com/gnames/gnames/lib/fuzzy"
+import "github.com/gnames/gnlib/fuzzy"
 
 type ScorePunish struct{}
 

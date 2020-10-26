@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/dimus/vorto/domain/entity"
-	"github.com/gnames/gnames/lib/gnuuid"
+	"github.com/gnames/gnlib/gnuuid"
 )
 
 func (e EngineJSON) Load(set string) (*entity.CardStack, error) {

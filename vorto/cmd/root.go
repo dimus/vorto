@@ -33,7 +33,7 @@ import (
 	"github.com/dimus/vorto/domain/entity"
 	"github.com/spf13/cobra"
 
-	"github.com/gnames/gnames/lib/sys"
+	"github.com/gnames/gnlib/sys"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )

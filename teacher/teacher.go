@@ -41,10 +41,11 @@ func (t Teacher) Train(bin entity.BinType) {
 
 func selectCards(cards []*entity.Card) []*entity.Card {
 	if len(cards) < 25 {
+		shuffleCards(cards)
 		return cards
 	}
-	shuffleCards(cards)
-	return cards[0:25]
+	bad, good, perfect := partitionCards(cards)
+	return examCards(bad, good, perfect)
 }
 
 func (t Teacher) Ask(card *entity.Card) int {
@@ -86,6 +87,71 @@ func (t Teacher) processCards(cards []*entity.Card) {
 		fmt.Printf("Total so far: %d\n", total)
 		fmt.Printf("res: %+v\n", card.Replies)
 	}
+}
+
+func examCards(bad, good, perfect []*entity.Card) []*entity.Card {
+	var res []*entity.Card
+	var leftowers []*entity.Card
+	if len(perfect) < 7 {
+		res = append(res, perfect...)
+	} else {
+		res = append(res, perfect[0:7]...)
+		leftowers = append(leftowers, perfect[7:]...)
+	}
+	if len(good) < 7 {
+		res = append(res, good...)
+	} else {
+		res = append(res, good[0:7]...)
+		leftowers = append(leftowers, good[7:]...)
+	}
+	badSize := 25 - len(res)
+	if len(bad) < badSize {
+		res = append(res, bad...)
+	} else {
+		res = append(res, bad[0:badSize]...)
+	}
+	if len(res) > 24 || len(leftowers) == 0 {
+		shuffleCards(res)
+		return res
+	}
+	fillSize := 25 - len(res)
+	if len(leftowers) < fillSize {
+		res = append(res, leftowers...)
+	} else {
+		res = append(res, leftowers[0:fillSize]...)
+	}
+	shuffleCards(res)
+	return res
+}
+
+func partitionCards(cards []*entity.Card) ([]*entity.Card, []*entity.Card, []*entity.Card) {
+	var bad, good, perfect []*entity.Card
+	for _, v := range cards {
+		card := v
+		switch goodAnswers(card) {
+		case 0, 1, 2, 3:
+			bad = append(bad, card)
+		case 4:
+			good = append(good, card)
+		default:
+			perfect = append(perfect, card)
+		}
+	}
+	shuffleCards(bad)
+	shuffleCards(good)
+	shuffleCards(perfect)
+	return bad, good, perfect
+}
+
+func goodAnswers(card *entity.Card) int {
+	count := 0
+	for _, v := range card.Replies {
+		if !v {
+			break
+		}
+		count += 1
+	}
+	return count
 }
 
 func shuffleCards(cards []*entity.Card) {

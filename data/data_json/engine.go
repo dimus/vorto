@@ -3,7 +3,7 @@ package data_json
 import (
 	"github.com/dimus/vorto/config"
 	"github.com/dimus/vorto/domain/entity"
-	"github.com/gnames/gnames/lib/encode"
+	"github.com/gnames/gnlib/encode"
 )
 
 var cardBins = []entity.BinType{entity.Vocabulary, entity.Learning, entity.New}

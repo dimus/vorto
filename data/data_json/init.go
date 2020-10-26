@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/dimus/vorto/domain/entity"
-	"github.com/gnames/gnames/lib/sys"
+	"github.com/gnames/gnlib/sys"
 )
 
 func (e EngineJSON) Init() error {
