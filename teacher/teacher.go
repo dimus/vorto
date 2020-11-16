@@ -6,6 +6,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +15,12 @@ import (
 	"github.com/dimus/vorto/domain/usecase"
 	"github.com/dimus/vorto/score"
 	"github.com/fatih/color"
+)
+
+const (
+	badNum     = 5
+	goodNum    = 5
+	perfectNum = 15
 )
 
 type Teacher struct {
@@ -33,7 +41,7 @@ func (t Teacher) Train(bin entity.BinType) {
 	var cards []*entity.Card
 	if cards, ok = t.CardStack.Bins[bin]; ok && len(cards) > 0 {
 		cards = selectCards(cards)
-		t.processCards(cards)
+		t.runExam(cards)
 	} else {
 		log.Printf("There are no cards in a '%s' bin.", bin)
 	}
@@ -73,11 +81,11 @@ func (t Teacher) Ask(card *entity.Card) int {
 		}
 	}
 	// If BadScore returns 1, the answer is correct.
-	card.Replies = card.Replies.Add(t.BadScore(scoreFinal) == 1)
+	card.Reply = card.Reply.Add(t.BadScore(scoreFinal) == 1)
 	return scoreFinal
 }
 
-func (t Teacher) processCards(cards []*entity.Card) {
+func (t Teacher) runExam(cards []*entity.Card) {
 	total := 0
 	shuffleCards(cards)
 	for i, card := range cards {
@@ -85,24 +93,28 @@ func (t Teacher) processCards(cards []*entity.Card) {
 		score := t.Ask(card)
 		total += score
 		fmt.Printf("Total so far: %d\n", total)
-		fmt.Printf("res: %+v\n", card.Replies)
+		fmt.Printf("res: %+v\n", card.Reply.Answers)
 	}
 }
 
 func examCards(bad, good, perfect []*entity.Card) []*entity.Card {
 	var res []*entity.Card
 	var leftowers []*entity.Card
-	if len(perfect) < 7 {
+	if len(perfect) < perfectNum {
 		res = append(res, perfect...)
 	} else {
-		res = append(res, perfect[0:7]...)
-		leftowers = append(leftowers, perfect[7:]...)
+		res = append(res, perfect[0:perfectNum]...)
+		leftowers = append(leftowers, perfect[perfectNum:]...)
 	}
-	if len(good) < 7 {
+	for _, v := range perfect {
+		ts := strconv.Itoa(int(v.Reply.TimeStamp))
+		ts = ts[len(ts)-5 : len(ts)-1]
+	}
+	if len(good) < goodNum {
 		res = append(res, good...)
 	} else {
-		res = append(res, good[0:7]...)
-		leftowers = append(leftowers, good[7:]...)
+		res = append(res, good[0:goodNum]...)
+		leftowers = append(leftowers, good[goodNum:]...)
 	}
 	badSize := 25 - len(res)
 	if len(bad) < badSize {
@@ -139,13 +151,55 @@ func partitionCards(cards []*entity.Card) ([]*entity.Card, []*entity.Card, []*en
 	}
 	shuffleCards(bad)
 	shuffleCards(good)
-	shuffleCards(perfect)
+	perfect = preparePerfect(perfect)
 	return bad, good, perfect
+}
+
+func preparePerfect(p []*entity.Card) []*entity.Card {
+	seed := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(seed)
+	rand.Seed(time.Now().UnixNano())
+	minTS, diffTS := minDiffTS(p)
+	type cardCarma struct {
+		card  *entity.Card
+		carma float32
+	}
+	for _, v := range p {
+		fRand := r.Float32()
+		fTS := (float32(v.Reply.TimeStamp - minTS)) / float32(diffTS)
+		v.SortVal = fRand + fTS
+	}
+	sort.Slice(p, func(i, j int) bool {
+		return p[i].SortVal < p[j].SortVal
+	})
+	return p
+}
+
+func minDiffTS(p []*entity.Card) (int32, int32) {
+	var minTS, maxTS int32
+	for _, v := range p {
+		if v.Reply.TimeStamp == 0.0 {
+			continue
+		}
+		if minTS == 0 {
+			minTS = v.Reply.TimeStamp
+		}
+		if maxTS == 0 {
+			maxTS = v.Reply.TimeStamp
+		}
+		if minTS > v.Reply.TimeStamp {
+			minTS = v.Reply.TimeStamp
+		}
+		if maxTS < v.Reply.TimeStamp {
+			maxTS = v.Reply.TimeStamp
+		}
+	}
+	return minTS, maxTS - minTS
 }
 
 func goodAnswers(card *entity.Card) int {
 	count := 0
-	for _, v := range card.Replies {
+	for _, v := range card.Reply.Answers {
 		if !v {
 			break
 		}

@@ -58,9 +58,9 @@ func shuffleCards(cards []*entity.Card) {
 func partitionVocablulary(cs *entity.CardStack) ([]*entity.Card, []*entity.Card) {
 	var toLearn, vocab []*entity.Card
 	for _, c := range cs.Bins[entity.Vocabulary] {
-		if len(c.Replies) > 0 && !c.Replies[0] {
-			var replies entity.Replies
-			c.Replies = replies
+		if len(c.Reply.Answers) > 0 && !c.Reply.Answers[0] {
+			var reply entity.Reply
+			c.Reply = reply
 			toLearn = append(toLearn, c)
 		} else {
 			vocab = append(vocab, c)
@@ -78,7 +78,7 @@ func partitionVocablulary(cs *entity.CardStack) ([]*entity.Card, []*entity.Card)
 func partitionLearning(cs *entity.CardStack) ([]*entity.Card, []*entity.Card) {
 	var toVocab, learn []*entity.Card
 	for _, c := range cs.Bins[entity.Learning] {
-		if c.Replies.LastGoodAnsw() > 2 {
+		if c.Reply.LastGoodAnsw() > 2 {
 			toVocab = append(toVocab, c)
 		} else {
 			learn = append(learn, c)
@@ -94,7 +94,7 @@ func partitionLearning(cs *entity.CardStack) ([]*entity.Card, []*entity.Card) {
 }
 
 func (e EngineJSON) writeToFiles(cs *entity.CardStack) error {
-	var cMap cardMap = make(map[string]entity.Replies)
+	var cMap cardMap = make(map[string]entity.Reply)
 	bins := []entity.BinType{entity.Vocabulary, entity.Learning, entity.New}
 	for _, bin := range bins {
 		err := e.saveBin(cs, bin, cMap)
@@ -113,7 +113,7 @@ func (e EngineJSON) saveBin(cs *entity.CardStack, bin entity.BinType, cMap cardM
 			fmt.Printf("Card '%s' already exists, ignoring.\n", card.Val)
 			continue
 		}
-		cMap[card.Val] = card.Replies
+		cMap[card.Val] = card.Reply
 		cards = append(cards, fmt.Sprintf("%s = %s", card.Val, card.Def))
 	}
 

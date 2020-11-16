@@ -77,7 +77,7 @@ func stackType(dir string) entity.StackType {
 }
 
 func (e EngineJSON) savedCardMap(set string) (cardMap, error) {
-	var res cardMap = make(map[string]entity.Replies)
+	var res cardMap = make(map[string]entity.Reply)
 	filePath := filepath.Join(e.DataDir, "flashcards", set, e.FileJSON)
 	text, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -127,8 +127,8 @@ func (e EngineJSON) loadFile(dir string, bin entity.BinType, cs *entity.CardStac
 		}
 
 		card := entity.Card{ID: gnuuid.New(val).String(), Val: val, Def: def}
-		if replies, ok := oldCardMap[card.Val]; ok {
-			card.Replies = replies
+		if reply, ok := oldCardMap[card.Val]; ok {
+			card.Reply = reply
 		}
 		cs.Bins[bin] = append(cs.Bins[bin], &card)
 	}

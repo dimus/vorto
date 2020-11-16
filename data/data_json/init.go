@@ -89,7 +89,7 @@ func (e EngineJSON) initJSON() error {
 		if sys.FileExists(filePath) {
 			return nil
 		}
-		var emptyCardMap cardMap = make(map[string]entity.Replies)
+		var emptyCardMap cardMap = make(map[string]entity.Reply)
 		csJSON, err := e.Encoder.Encode(emptyCardMap)
 		if err != nil {
 			return err

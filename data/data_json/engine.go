@@ -18,8 +18,9 @@ func NewEngineJSON(cfg config.Config) EngineJSON {
 	return EngineJSON{
 		Config:   cfg,
 		FileJSON: "vorto.json",
+		Encoder:  encode.GNjson{Pretty: true},
 	}
 }
 
 // cardMap is a map of a card value to card replies.
-type cardMap map[string]entity.Replies
+type cardMap map[string]entity.Reply

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"strings"
+	"time"
 )
 
 type CardStack struct {
@@ -11,26 +12,30 @@ type CardStack struct {
 }
 
 type Card struct {
-	ID      string `json:"id"`
-	Val     string `json:"value"`
-	Def     string `json:"defenition"`
-	Replies `json:"replies"`
+	ID      string  `json:"id"`
+	Val     string  `json:"value"`
+	Def     string  `json:"defenition"`
+	SortVal float32 `json:"-"`
+	Reply   `json:"replies"`
 }
 
-type Replies []bool
+type Reply struct {
+	Answers   []bool `json:"answers"`
+	TimeStamp int32  `json:"ts"`
+}
 
-func (rs Replies) Add(r bool) Replies {
-	var res Replies = []bool{r}
-	res = append(res, rs...)
-	if len(res) <= 5 {
-		return res
+func (rs Reply) Add(r bool) Reply {
+	var res = []bool{r}
+	res = append(res, rs.Answers...)
+	if len(res) > 5 {
+		res = res[0:5]
 	}
-	return res[0:5]
+	return Reply{Answers: res, TimeStamp: int32(time.Now().Unix())}
 }
 
-func (rs Replies) LastGoodAnsw() int {
+func (rs Reply) LastGoodAnsw() int {
 	res := 0
-	for _, v := range rs {
+	for _, v := range rs.Answers {
 		if !v {
 			break
 		}
