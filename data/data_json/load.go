@@ -77,14 +77,18 @@ func stackType(dir string) entity.StackType {
 }
 
 func (e EngineJSON) savedCardMap(set string) (cardMap, error) {
-	var res cardMap = make(map[string]entity.Reply)
+	var res []CardStorage
+	var cm cardMap = make(map[string]entity.Reply)
 	filePath := filepath.Join(e.DataDir, "flashcards", set, e.FileJSON)
 	text, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return res, err
+		return cm, err
 	}
 	err = e.Encoder.Decode(text, &res)
-	return res, err
+	for _, v := range res {
+		cm[v.Value] = v.Reply
+	}
+	return cm, err
 }
 
 func (e EngineJSON) prepareDataJSON() {

@@ -13,6 +13,11 @@ import (
 	"github.com/fatih/color"
 )
 
+type CardStorage struct {
+	Value        string `json:"value"`
+	entity.Reply `json:"data"`
+}
+
 func (e EngineJSON) Save(cs *entity.CardStack) error {
 	toLearn, vocab := partitionVocablulary(cs)
 	toVocab, learn := partitionLearning(cs)
@@ -102,7 +107,8 @@ func (e EngineJSON) writeToFiles(cs *entity.CardStack) error {
 			return err
 		}
 	}
-	return nil
+	path := filepath.Join(e.DataDir, "flashcards", cs.Set, e.FileJSON)
+	return e.saveCardMap(path, cMap)
 }
 
 func (e EngineJSON) saveBin(cs *entity.CardStack, bin entity.BinType, cMap cardMap) error {
@@ -122,12 +128,18 @@ func (e EngineJSON) saveBin(cs *entity.CardStack, bin entity.BinType, cMap cardM
 	if err != nil {
 		return err
 	}
-	return e.saveCardMap(cs, cMap)
+	return nil
 }
 
-func (e EngineJSON) saveCardMap(cs *entity.CardStack, m cardMap) error {
-	path := filepath.Join(e.DataDir, "flashcards", cs.Set, e.FileJSON)
-	res, err := e.Encoder.Encode(m)
+func (e EngineJSON) saveCardMap(path string, m cardMap) error {
+	storage := make([]CardStorage, 0, len(m))
+	for k, v := range m {
+		storage = append(storage, CardStorage{Value: k, Reply: v})
+	}
+	sort.Slice(storage, func(i, j int) bool {
+		return storage[i].Value < storage[j].Value
+	})
+	res, err := e.Encoder.Encode(storage)
 	if err != nil {
 		return err
 	}
