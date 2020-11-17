@@ -9,7 +9,6 @@ GOCMD=go
 GOINSTALL=$(GOCMD) install $(FLAGS_LD)
 GOBUILD=$(GOCMD) build $(FLAGS_LD)
 GOCLEAN=$(GOCMD) clean
-GOGENERATE=$(GOCMD) generate
 GOGET = $(GOCMD) get
 
 all: install
@@ -19,10 +18,8 @@ test: deps install
 
 deps:
 	$(GOCMD) mod download; \
-	$(GOGENERATE)
 
 build:
-	$(GOGENERATE)
 	cd vorto; \
 	$(GOCLEAN); \
 	$(FLAGS_SHARED) $(GOBUILD);
@@ -38,7 +35,6 @@ release:
 	$(GOCLEAN);
 
 install:
-	$(GOGENERATE)
 	cd vorto; \
 	$(FLAGS_SHARED) $(GOINSTALL);
 

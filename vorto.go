@@ -10,6 +10,10 @@ import (
 	"github.com/fatih/color"
 )
 
+var (
+	Version, Build string
+)
+
 type Vorto struct {
 	config.Config
 	usecase.Loader

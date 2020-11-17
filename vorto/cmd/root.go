@@ -72,6 +72,9 @@ var rootCmd = &cobra.Command{
 	Use:   "vorto",
 	Short: "A flash cards app to learn new words, facts or terms",
 	Run: func(cmd *cobra.Command, args []string) {
+		if showVersionFlag(cmd) {
+			os.Exit(0)
+		}
 		var cardsStack *entity.CardStack
 		c := config.NewConfig(opts...)
 		vrt := vorto.NewVorto(c)
@@ -108,6 +111,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	rootCmd.Flags().BoolP("version", "V", false, "show app's version")
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
@@ -191,4 +195,18 @@ func createConfig(path, file, configText string) {
 	if err != nil {
 		log.Fatalf("Cannot write to file %s: %s.", path, err)
 	}
+}
+
+// showVersionFlag provides version and the build timestamp. If it returns
+// true, it means that version flag was given.
+func showVersionFlag(cmd *cobra.Command) bool {
+	hasVersionFlag, err := cmd.Flags().GetBool("version")
+	if err != nil {
+		log.Fatalf("Cannot get version flag: %s.", err)
+	}
+
+	if hasVersionFlag {
+		fmt.Printf("\nversion: %s\nbuild: %s\n\n", vorto.Version, vorto.Build)
+	}
+	return hasVersionFlag
 }
