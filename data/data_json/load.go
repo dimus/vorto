@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/dimus/vorto/domain/entity"
 	"github.com/gnames/gnlib/gnuuid"
@@ -113,6 +114,7 @@ func parseLine(line string) (string, string, bool) {
 }
 
 func (e EngineJSON) loadFile(dir string, bin entity.BinType, cs *entity.CardStack) error {
+	ts := int32(time.Now().Unix())
 	oldCardMap, err := e.savedCardMap(cs.Set)
 	if err != nil {
 		return err
@@ -133,6 +135,10 @@ func (e EngineJSON) loadFile(dir string, bin entity.BinType, cs *entity.CardStac
 		card := entity.Card{ID: gnuuid.New(val).String(), Val: val, Def: def}
 		if reply, ok := oldCardMap[card.Val]; ok {
 			card.Reply = reply
+		}
+		if bin == entity.Vocabulary && len(card.Reply.Answers) == 0 {
+			card.Reply.Answers = []bool{true, true, true, true, true}
+			card.Reply.TimeStamp = ts
 		}
 		cs.Bins[bin] = append(cs.Bins[bin], &card)
 	}

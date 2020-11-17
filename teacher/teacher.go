@@ -166,7 +166,10 @@ func preparePerfect(p []*entity.Card) []*entity.Card {
 	}
 	for _, v := range p {
 		fRand := r.Float32()
-		fTS := (float32(v.Reply.TimeStamp - minTS)) / float32(diffTS)
+		var fTS float32
+		if diffTS > 0 {
+			fTS = (float32(v.Reply.TimeStamp - minTS)) / float32(diffTS)
+		}
 		v.SortVal = fRand + fTS
 	}
 	sort.Slice(p, func(i, j int) bool {

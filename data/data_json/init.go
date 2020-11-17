@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dimus/vorto/domain/entity"
 	"github.com/gnames/gnlib/sys"
 )
 
@@ -89,8 +88,8 @@ func (e EngineJSON) initJSON() error {
 		if sys.FileExists(filePath) {
 			return nil
 		}
-		var emptyCardMap cardMap = make(map[string]entity.Reply)
-		csJSON, err := e.Encoder.Encode(emptyCardMap)
+		var emptyCardStorage []CardStorage
+		csJSON, err := e.Encoder.Encode(emptyCardStorage)
 		if err != nil {
 			return err
 		}
