@@ -17,10 +17,15 @@ import (
 	"github.com/fatih/color"
 )
 
+// the constants determine how may words of each cagegory will get into
+// vocabulary questions.
 const (
-	badNum     = 5
-	goodNum    = 5
-	perfectNum = 15
+	// badNum is the number of questions with up to 3 correct answers
+	badNum = 15
+	// goodNum is the number of questions with 4 correct answers
+	goodNum = 5
+	// perfectNum is the number of questions with 5 correct anwers
+	perfectNum = 5
 )
 
 type Teacher struct {
@@ -59,6 +64,7 @@ func selectCards(cards []*entity.Card) []*entity.Card {
 func (t Teacher) Ask(card *entity.Card) int {
 	scoreFinal := 0
 	fmt.Printf("What is: %s\n", card.Def)
+	fmt.Printf("(%d answers)\n", goodAnswers(card))
 	for {
 		fmt.Print("-> ")
 		reader := bufio.NewReader(os.Stdin)
@@ -152,6 +158,7 @@ func partitionCards(cards []*entity.Card) ([]*entity.Card, []*entity.Card, []*en
 	shuffleCards(bad)
 	shuffleCards(good)
 	perfect = preparePerfect(perfect)
+	fmt.Printf("bad %d, good %d, perfect %d\n", len(bad), len(good), len(perfect))
 	return bad, good, perfect
 }
 
