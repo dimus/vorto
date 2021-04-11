@@ -41,12 +41,12 @@ func NewTeacher(cs *entity.CardStack) Teacher {
 	}
 }
 
-func (t Teacher) Train(bin entity.BinType) {
+func (t Teacher) Train(bin entity.BinType, withSecondChance bool) {
 	var ok bool
 	var cards []*entity.Card
 	if cards, ok = t.CardStack.Bins[bin]; ok && len(cards) > 0 {
 		cards = selectCards(cards)
-		t.runExam(cards)
+		t.runExam(cards, withSecondChance)
 	} else {
 		log.Printf("There are no cards in a '%s' bin.", bin)
 	}
@@ -61,7 +61,7 @@ func selectCards(cards []*entity.Card) []*entity.Card {
 	return examCards(bad, good, perfect)
 }
 
-func (t Teacher) Ask(card *entity.Card) int {
+func (t Teacher) Ask(card *entity.Card, withSecondChance bool) int {
 	scoreFinal := 0
 	fmt.Printf("What is: %s\n", card.Def)
 	fmt.Printf("(%d answers)\n", goodAnswers(card))
@@ -72,6 +72,13 @@ func (t Teacher) Ask(card *entity.Card) int {
 		text = strings.TrimSpace(text)
 		text = t.ProcessInput(text)
 		score := t.Scorer.Score(text, card.Val)
+
+		// for vocabulary give one more chance if answer was wrong
+		if t.BadScore(score) < 1 && withSecondChance {
+			color.Yellow("Nope, one more chance")
+			return t.Ask(card, false)
+		}
+
 		if t.BadScore(score) == -1 {
 			scoreFinal += score
 			color.Red("!> %s", card.Val)
@@ -91,12 +98,12 @@ func (t Teacher) Ask(card *entity.Card) int {
 	return scoreFinal
 }
 
-func (t Teacher) runExam(cards []*entity.Card) {
+func (t Teacher) runExam(cards []*entity.Card, withSecondChance bool) {
 	total := 0
 	shuffleCards(cards)
 	for i, card := range cards {
 		fmt.Printf("\n%d out of %d\n", i+1, len(cards))
-		score := t.Ask(card)
+		score := t.Ask(card, withSecondChance)
 		total += score
 		fmt.Printf("Total so far: %d\n", total)
 		fmt.Printf("res: %+v\n", card.Reply.Answers)

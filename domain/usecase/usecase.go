@@ -15,8 +15,8 @@ type Manager interface {
 }
 
 type Teacher interface {
-	Train(entity.BinType)
-	Ask(card *entity.Card) int
+	Train(entity.BinType, bool)
+	Ask(card *entity.Card, withSecondChance bool) int
 }
 
 type Scorer interface {

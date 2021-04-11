@@ -41,7 +41,7 @@ func (vrt Vorto) Run(cs *entity.CardStack) {
 	t := teacher.NewTeacher(cs)
 	vrt.Teacher = t
 	color.Yellow("Learning new terms...")
-	t.Train(entity.Learning)
+	t.Train(entity.Learning, false)
 
 	var count int
 	for _, c := range cs.Bins[entity.Learning] {
@@ -54,7 +54,7 @@ func (vrt Vorto) Run(cs *entity.CardStack) {
 	}
 
 	color.Green("\nChecking learned before words...\n")
-	t.Train(entity.Vocabulary)
+	t.Train(entity.Vocabulary, true)
 }
 
 func (vrt Vorto) Save(cs *entity.CardStack) error {
