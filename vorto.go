@@ -43,7 +43,13 @@ func (vrt Vorto) Run(cs *entity.CardStack) {
 	color.Yellow("Learning new terms...")
 	t.Train(entity.Learning)
 
-	if len(cs.Bins[entity.Learning]) >= 15 {
+	var count int
+	for _, c := range cs.Bins[entity.Learning] {
+		if c.Reply.LastGoodAnsw() <= 2 {
+			count++
+		}
+	}
+	if count >= 15 {
 		return
 	}
 

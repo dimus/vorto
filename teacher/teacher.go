@@ -21,9 +21,9 @@ import (
 // vocabulary questions.
 const (
 	// badNum is the number of questions with up to 3 correct answers
-	badNum = 15
+	badNum = 10
 	// goodNum is the number of questions with 4 correct answers
-	goodNum = 5
+	goodNum = 10
 	// perfectNum is the number of questions with 5 correct anwers
 	perfectNum = 5
 )
