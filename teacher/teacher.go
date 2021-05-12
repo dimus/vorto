@@ -64,7 +64,7 @@ func selectCards(cards []*entity.Card) []*entity.Card {
 func (t Teacher) Ask(card *entity.Card, withSecondChance bool) int {
 	scoreFinal := 0
 	fmt.Printf("What is: %s\n", card.Def)
-	fmt.Printf("(%d answers)\n", goodAnswers(card))
+	fmt.Printf("(%d answers, %d days ago)\n", goodAnswers(card), days(card))
 	for {
 		fmt.Print("-> ")
 		reader := bufio.NewReader(os.Stdin)
@@ -230,4 +230,13 @@ func shuffleCards(cards []*entity.Card) {
 	rand.Shuffle(len(cards), func(i, j int) {
 		cards[i], cards[j] = cards[j], cards[i]
 	})
+}
+
+func days(card *entity.Card) int64 {
+	t := time.Now().Unix()
+	var diff int64
+	if card.TimeStamp > 0 {
+		diff = t - int64(card.TimeStamp)
+	}
+	return diff / 86400
 }
