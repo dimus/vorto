@@ -19,7 +19,7 @@ import (
 
 // the constants determine how may words of each cagegory will get into
 // vocabulary questions.
-const (
+var (
 	// badNum is the number of questions with up to 3 correct answers
 	badNum = 10
 	// goodNum is the number of questions with 4 correct answers
@@ -45,11 +45,24 @@ func (t Teacher) Train(bin entity.BinType, withSecondChance bool) {
 	var ok bool
 	var cards []*entity.Card
 	if cards, ok = t.CardStack.Bins[bin]; ok && len(cards) > 0 {
+		if bin == entity.Vocabulary && newWords(cards) < 30 {
+			badNum, goodNum, perfectNum = 5, 5, 15
+		}
 		cards = selectCards(cards)
 		t.runExam(cards, withSecondChance)
 	} else {
 		log.Printf("There are no cards in a '%s' bin.", bin)
 	}
+}
+
+func newWords(cards []*entity.Card) int {
+	var res int
+	for i := range cards {
+		if len(cards[i].Reply.Answers) < 5 {
+			res++
+		}
+	}
+	return res
 }
 
 func selectCards(cards []*entity.Card) []*entity.Card {
@@ -165,7 +178,9 @@ func partitionCards(cards []*entity.Card) ([]*entity.Card, []*entity.Card, []*en
 	shuffleCards(bad)
 	shuffleCards(good)
 	perfect = preparePerfect(perfect)
-	fmt.Printf("bad %d, good %d, perfect %d\n", len(bad), len(good), len(perfect))
+	if len(perfect) > 0 {
+		fmt.Printf("bad %d, good %d, perfect %d\n", len(bad), len(good), len(perfect))
+	}
 	return bad, good, perfect
 }
 
